@@ -1,6 +1,7 @@
 import langchain
 from langchain.docstore.document import Document
 from cat.mad_hatter.decorators import hook
+from cat.log import log
 
 
 @hook
@@ -34,3 +35,5 @@ def before_rabbithole_stores_documents(docs, cat):
 
         # add summary to list of all summaries
         all_summaries.append(summary)
+
+    return all_summaries
