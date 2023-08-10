@@ -10,12 +10,13 @@ def before_rabbithole_stores_documents(docs, cat):
     {text}
     """  # TODO make this a setting
     summarization_chain = langchain.chains.LLMChain(
-        llm=cat.llm,
+        llm=cat._llm,
         verbose=False,
         prompt=langchain.PromptTemplate(template=summarization_prompt,
                                         input_variables=["text"]),
     )
 
+    log(f"Starting to summarize {len(docs)}", "WARNING")
     # we will store iterative summaries all together in a list
     all_summaries = []
 
