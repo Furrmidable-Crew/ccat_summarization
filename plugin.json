@@ -1,10 +1,10 @@
 {
     "name": "Summarization",
-    "version": "0.0.3",
+    "version": "0.0.4",
     "description": "Official plugin of the Cheshire Cat to summarize uploaded documents",
     "author_name": "FritzTheCat",
     "author_url": "",
     "plugin_url": "https://github.com/Furrmidable-Crew/ccat_summarization",
     "tags": "vector-db, llm, cheshire-cat, embedding",
-    "thumb": "https://github.com/Furrmidable-Crew/ccat_summarization/main/logo.png"
+    "thumb": "https://github.com/Furrmidable-Crew/ccat_summarization/blob/main/logo.png"
 }
