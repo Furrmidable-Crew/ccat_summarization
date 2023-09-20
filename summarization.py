@@ -62,7 +62,4 @@ def before_rabbithole_stores_documents(docs, cat):
 
     docs.extend(all_summaries)
 
-    log(all_summaries, "CRITICAL")
-    log(docs, "ERROR")
-
     return docs

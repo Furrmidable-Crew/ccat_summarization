@@ -1,0 +1,4 @@
+{
+    "summarization_prompt": "Write a concise summary of the following:",
+    "group_size": 5
+}
