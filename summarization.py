@@ -4,11 +4,23 @@ from cat.mad_hatter.decorators import hook
 from cat.log import log
 
 
+def notify_admin(cat, message):
+    cat.web_socket_notifications.append({
+        "error": False,
+        "type": "notification",
+        "content": message,
+        "why": {},
+    })
+
+
 @hook
 def before_rabbithole_stores_documents(docs, cat):
-    summarization_prompt = """Write a concise summary of the following:
-    {text}
-    """  # TODO make this a setting
+    # Load settings
+    settings = cat.mad_hatter.plugins["ccat_summarization"].load_settings()
+    group_size = settings["group_size"]
+
+    # LLM Chain from Langchain
+    summarization_prompt = f"{settings['summarization_prompt']}\n {{text}}"
     summarization_chain = langchain.chains.LLMChain(
         llm=cat._llm,
         verbose=False,
@@ -16,20 +28,31 @@ def before_rabbithole_stores_documents(docs, cat):
                                         input_variables=["text"]),
     )
 
-    log(f"Starting to summarize {len(docs)}", "WARNING")
+    notification = f"Starting to summarize {len(docs)}",
+    log(notification, "INFO")
+    notify_admin(cat, notification)
+    # TODO: send notification to admin with `send_ws_message` when this will be in the main branch
+
     # we will store iterative summaries all together in a list
     all_summaries = []
 
-    summarization_level = 0  # 0 means hierarchical?  # TODO make this a setting
-    group_size = 5  # TODO make this a setting
-    separator = "\n --> "
+    # Compute total summaries for progress notification
+    n_summaries = len(docs) // group_size
 
     # make summaries of groups of docs
-    for i in range(0, len(docs), group_size):
+    for n, i in enumerate(range(0, len(docs), group_size)):
+        # Notify the admin of the progress
+        progress = (n * 100) // n_summaries
+        message = f"{progress}% of summarization"
+        notify_admin(cat, message)
+        log(message, "INFO")
+
+        # Get the text from groups of docs and join to string
         group = docs[i: i + group_size]
         group = list(map(lambda d: d.page_content, group))
+        text_to_summarize = "\n".join(group)
 
-        text_to_summarize = separator + separator.join(group)
+        # Summarize and add metadata
         summary = summarization_chain.run(text_to_summarize)
         summary = Document(page_content=summary)
         summary.metadata["is_summary"] = True
@@ -37,4 +60,9 @@ def before_rabbithole_stores_documents(docs, cat):
         # add summary to list of all summaries
         all_summaries.append(summary)
 
-    return all_summaries
+    docs.extend(all_summaries)
+
+    log(all_summaries, "CRITICAL")
+    log(docs, "ERROR")
+
+    return docs
