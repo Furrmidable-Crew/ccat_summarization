@@ -4,15 +4,6 @@ from cat.mad_hatter.decorators import hook
 from cat.log import log
 
 
-def notify_admin(cat, message):
-    cat.web_socket_notifications.append({
-        "error": False,
-        "type": "notification",
-        "content": message,
-        "why": {},
-    })
-
-
 @hook
 def before_rabbithole_stores_documents(docs, cat):
     # Load settings
@@ -30,8 +21,7 @@ def before_rabbithole_stores_documents(docs, cat):
 
     notification = f"Starting to summarize {len(docs)}",
     log(notification, "INFO")
-    notify_admin(cat, notification)
-    # TODO: send notification to admin with `send_ws_message` when this will be in the main branch
+    cat.send_ws_message(notification, msg_type="notification")
 
     # we will store iterative summaries all together in a list
     all_summaries = []
@@ -44,7 +34,7 @@ def before_rabbithole_stores_documents(docs, cat):
         # Notify the admin of the progress
         progress = (n * 100) // n_summaries
         message = f"{progress}% of summarization"
-        notify_admin(cat, message)
+        cat.send_ws_message(message, msg_type="notification")
         log(message, "INFO")
 
         # Get the text from groups of docs and join to string
